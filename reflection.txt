@@ -1,0 +1,52 @@
+My Thoughts on Building the Ayoayo Game
+Getting Started
+ When I first looked at the assignment, the main goal was clear: build a text-based Ayoayo game. The PDF mentioned creating an Ayoayo class with specific methods like createPlayer, playGame, and others. It also said to implement a Player class and ensure all data members were private. The game setup includes 4 seeds in each of the 6 pits per player, along with individual stores.
+The tricky part was that the PDF referred to an "Ayoayo_rules.pdf" for detailed rules—which I didn’t have initially. So, my first version of the game logic was based on what I could infer from examples in the assignment PDF and my general understanding of Mancala-type games. I originally included a "relay sowing" rule, where if a seed lands in an occupied pit, you pick up those seeds and continue sowing.
+Getting the Real Rules & Making Changes
+ Later on, I received the actual Ayoayo_rules.pdf, which was very helpful. After going through it, I noticed a few important clarifications:
+Sowing Seeds: The official rules are simpler. You pick up all seeds from a pit and sow them one by one in the next pits. There is no relay or continuous sowing. This was the biggest change I had to make in my playGame method—I removed the relay sowing logic.
+
+
+Special Rules:
+
+
+Extra Turn: If your last seed lands in your own store, you get another turn. My first version already handled this correctly.
+
+
+Capture: If your last seed lands in an empty pit on your own side, you capture that seed plus all seeds in the directly opposite pit on your opponent’s side. My initial implementation was close to this, so only minor tweaks were needed.
+
+
+Game End: The game ends when all pits on one player’s side are empty. The other player then collects all remaining seeds on their side into their store. I adjusted my function (renamed to _clear_remaining_seeds_at_game_end) to follow this exactly.
+How I Built It (with the real rules in mind)
+The Ayoayo class manages the game board (as a list of numbers), the players, and turn logic.
+
+
+The Player class stores basic information like player names.
+
+
+The playGame method handles seed sowing, turn switching, capturing, and extra turns—now in line with the official rules.
+
+
+The app.py file uses Streamlit to provide a simple web interface. Since most logic is in the Ayoayo class, the UI didn’t require major changes when I updated the rules.
+
+
+Challenges
+The biggest challenge was not having the exact game rules at the beginning. My first version worked but didn’t fully match the official Ayoayo mechanics.
+
+
+Creating a smooth, intuitive turn-taking flow in Streamlit also required careful handling of session state and user inputs.
+
+
+What I Learned
+Having clear, complete rules from the start makes game development much easier and reduces rework.
+
+
+Even simple rule changes (like removing relay sowing) can have a big effect on game logic.
+
+
+Separating game logic and UI into different files is a good practice that keeps things organized and makes updates easier.
+
+
+Final Thoughts
+This was a fun and insightful project. Ayoayo has interesting rules, and building it step-by-step—then refining the implementation based on the official guide—was a great learning experience. I appreciated the challenge of interpreting and implementing a traditional game in a modern, interactive format.
+
