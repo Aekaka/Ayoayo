@@ -1,5 +1,5 @@
 import streamlit as st
-from ayoayo import Ayoayo # Our game logic
+from ayoayo import Ayoayo  # Our game logic
 
 st.set_page_config(page_title="Ayoayo Game", layout="wide")
 
@@ -7,9 +7,9 @@ def init_game():
     """Sets up a new game or resets the current one."""
     st.session_state.game = Ayoayo()
     st.session_state.players_created = False
-    st.session_state.player_names = ["Player 1", "Player 2"] # Defaults
+    st.session_state.player_names = ["Player 1", "Player 2"]  # Defaults
     st.session_state.game_log = []
-    st.session_state.last_action_message = "" # For "extra turn" or errors
+    st.session_state.last_action_message = ""  # For "extra turn" or errors
 
 if 'game' not in st.session_state:
     init_game()
@@ -31,7 +31,8 @@ if not st.session_state.players_created:
                 game.createPlayer(p2_name_input)
                 st.session_state.players_created = True
                 st.session_state.game_log.append(f"Game started: {p1_name_input} vs {p2_name_input}.")
-                st.experimental_rerun() # Refresh to show game board
+                st.experimental_rerun()
+                st.stop()  # Prevent rerun loop
             else:
                 st.error("Please give both players a name.")
 else:
@@ -50,16 +51,16 @@ else:
     st.markdown(f"<h4 style='text-align: center;'>{p2_name}'s Pits (Player 2)</h4>", unsafe_allow_html=True)
     p2_pits_indices, p2_store_idx = game._get_player_details(2)
     cols_p2_pits = st.columns(6)
-    for i, board_idx in enumerate(reversed(p2_pits_indices)): # Show P2's pits right-to-left
+    for i, board_idx in enumerate(reversed(p2_pits_indices)):  # Show P2's pits right-to-left
         cols_p2_pits[i].button(
             f"{game._board[board_idx]}", 
             key=f"p2_pit_display_{5-i}", 
-            disabled=True, # Just for display
+            disabled=True,
             use_container_width=True
         )
-    
+
     # Stores and Game Status
-    col_p1_store, col_status, col_p2_store = st.columns([2,3,2])
+    col_p1_store, col_status, col_p2_store = st.columns([2, 3, 2])
     with col_p1_store:
         st.metric(label=f"{p1_name}'s Store", value=game._board[game._get_player_details(1)[1]])
     with col_status:
@@ -70,7 +71,7 @@ else:
             st.subheader(f"It's {current_player_name}'s turn!")
     with col_p2_store:
         st.metric(label=f"{p2_name}'s Store", value=game._board[p2_store_idx])
-    
+
     # Player 1 (Bottom)
     st.markdown(f"<h4 style='text-align: center;'>{p1_name}'s Pits (Player 1)</h4>", unsafe_allow_html=True)
     p1_pits_indices, _ = game._get_player_details(1)
@@ -79,54 +80,57 @@ else:
         cols_p1_pits[i].button(
             f"{game._board[board_idx]}",
             key=f"p1_pit_display_{i}",
-            disabled=True, # Just for display
+            disabled=True,
             use_container_width=True
         )
+
     st.markdown("---")
 
     # Player Action Area
     if not game._game_over:
         active_player_1_based_idx = current_player_idx_0_based + 1
-        
         player_pits, _ = game._get_player_details(active_player_1_based_idx)
-        available_moves_options = [] # (Display text, pit_index_1_to_6)
+        available_moves_options = []
+
         for i in range(6):
             pit_board_idx = player_pits[i]
-            if game._board[pit_board_idx] > 0: # Can only play non-empty pits
+            if game._board[pit_board_idx] > 0:
                 available_moves_options.append(
                     (f"Pit {i+1} ({game._board[pit_board_idx]} seeds)", i + 1)
                 )
 
         if not available_moves_options:
             st.warning(f"{current_player_name} has no moves! The game might end here.")
-            # The game logic (returnWinner) will handle determining if this ends the game.
         else:
             selected_move_tuple = st.selectbox(
                 f"{current_player_name}, choose a pit to play:",
                 options=available_moves_options,
-                format_func=lambda x: x[0] # Show only the display text
+                format_func=lambda x: x[0]
             )
 
             if st.button(f"Play Pit for {current_player_name}", disabled=not selected_move_tuple):
                 if selected_move_tuple:
                     chosen_pit_1_idx = selected_move_tuple[1]
                     board_state_str = game.playGame(active_player_1_based_idx, chosen_pit_1_idx)
-                    
+
                     st.session_state.last_action_message = game.get_extra_turn_message()
-                    if not st.session_state.last_action_message and "empty" in board_state_str.lower(): # Crude check for error from playGame
+                    if not st.session_state.last_action_message and "empty" in board_state_str.lower():
                         st.session_state.last_action_message = board_state_str
-                    
+
                     st.session_state.game_log.append(
                         f"{current_player_name} played pit {chosen_pit_1_idx}."
                     )
                     if game.get_extra_turn_message():
-                         st.session_state.game_log.append(game.get_extra_turn_message())
-                    
+                        st.session_state.game_log.append(game.get_extra_turn_message())
+
                     st.experimental_rerun()
-    else: # Game is over
+                    st.stop()
+
+    else:
         if st.button("🔄 Play Again?"):
             init_game()
             st.experimental_rerun()
+            st.stop()
 
     # Game Log in Sidebar
     st.sidebar.header("📜 Game Log")
@@ -134,7 +138,7 @@ else:
     st.sidebar.markdown(f"**Player 2:** {p2_name}")
     st.sidebar.markdown("---")
     if st.session_state.game_log:
-        for entry in reversed(st.session_state.game_log[-15:]): # Show recent logs
+        for entry in reversed(st.session_state.game_log[-15:]):
             st.sidebar.text(entry)
     else:
         st.sidebar.text("No moves made yet.")
